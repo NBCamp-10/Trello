@@ -1,6 +1,7 @@
 package com.sparta.trello.card.comment.entity;
 
 import com.sparta.trello.card.comment.DTO.CommentCreateRequestDTO;
+import com.sparta.trello.card.comment.DTO.CommentUpdateRequestDTO;
 import com.sparta.trello.card.entity.Card;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -27,6 +28,10 @@ public class Comment {
     private Comment(CommentCreateRequestDTO commentCreateRequestDTO,Card card){
         this.text=commentCreateRequestDTO.getText();
         this.card=card;
+    }
+
+    public void updateComment(CommentUpdateRequestDTO commentUpdateRequestDTO){
+        this.text= commentUpdateRequestDTO.getText();
     }
 
 }

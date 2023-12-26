@@ -2,6 +2,8 @@ package com.sparta.trello.card.comment.controller;
 
 import com.sparta.trello.card.comment.DTO.CommentCreateRequestDTO;
 import com.sparta.trello.card.comment.DTO.CommentCreateResponseDTO;
+import com.sparta.trello.card.comment.DTO.CommentUpdateRequestDTO;
+import com.sparta.trello.card.comment.DTO.CommentUpdateResponseDTO;
 import com.sparta.trello.card.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,5 +18,12 @@ public class CommentController {
                                                    @RequestBody CommentCreateRequestDTO commentCreateRequestDTO){
         return commentService.createComment(commentCreateRequestDTO, cardId);
     }
-    
+
+    @PatchMapping("/{cardId}/{commentId}")
+    public CommentUpdateResponseDTO updateComment (@PathVariable Long cardId,
+                                                   @PathVariable Long commentId,
+                                                   @RequestBody CommentUpdateRequestDTO commentUpdateRequestDTO){
+        return commentService.updateComment(commentUpdateRequestDTO, cardId, commentId);
+    }
+
 }
