@@ -24,4 +24,10 @@ public class CardController {
         return cardService.updateCard(CardUpdateRequestDTO,cardId);
     }
 
+    @DeleteMapping("/{cardId}")
+    public String deleteCard (@PathVariable Long cardId){
+        cardService.deleteCard(cardId);
+        return "삭제완료";
+    }
+
 }

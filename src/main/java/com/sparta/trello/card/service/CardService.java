@@ -42,4 +42,11 @@ public class CardService {
 
         return cardUpdateResponseDTO;
     }
+
+    public void deleteCard(Long cardId) {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new NoSuchElementException("ID에 해당하는 카드를 찾을 수 없습니다: " + cardId));
+
+        cardRepository.delete(card);
+    }
 }
