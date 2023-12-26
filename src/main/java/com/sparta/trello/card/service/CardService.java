@@ -35,7 +35,7 @@ public class CardService {
     public CardUpdateResponseDTO updateCard(CardUpdateRequestDTO cardUpdateRequestDTO, Long cardId) {
         Card card= getCard(cardId);
 
-        card.update(cardUpdateRequestDTO);
+        card.updateCard(cardUpdateRequestDTO);
 
         CardUpdateResponseDTO cardUpdateResponseDTO=CardUpdateResponseDTO.builder().card(card).build();
 

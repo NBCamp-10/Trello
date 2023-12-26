@@ -33,7 +33,7 @@ public class Card {
         this.deadline=cardCreateRequestDTO.getDeadline();
     }
 
-    public void update(CardUpdateRequestDTO cardUpdateRequestDTO){
+    public void updateCard(CardUpdateRequestDTO cardUpdateRequestDTO){
         this.title=cardUpdateRequestDTO.getTitle();
         this.text=cardUpdateRequestDTO.getText();
         this.color=cardUpdateRequestDTO.getColor();
