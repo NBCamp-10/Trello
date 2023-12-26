@@ -33,8 +33,7 @@ public class CardService {
     }
 
     public CardUpdateResponseDTO updateCard(CardUpdateRequestDTO cardUpdateRequestDTO, Long cardId) {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new NoSuchElementException("ID에 해당하는 카드를 찾을 수 없습니다: " + cardId));
+        Card card= getCard(cardId);
 
         card.update(cardUpdateRequestDTO);
 
@@ -44,9 +43,19 @@ public class CardService {
     }
 
     public void deleteCard(Long cardId) {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new NoSuchElementException("ID에 해당하는 카드를 찾을 수 없습니다: " + cardId));
+
+        Card card= getCard(cardId);
 
         cardRepository.delete(card);
     }
+
+
+
+    public Card getCard(Long cardId){
+        return cardRepository.findById(cardId)
+                .orElseThrow(() -> new NoSuchElementException("ID에 해당하는 카드를 찾을 수 없습니다: " + cardId));
+    }
 }
+
+
+
