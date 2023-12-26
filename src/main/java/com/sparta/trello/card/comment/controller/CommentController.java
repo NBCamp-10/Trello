@@ -26,4 +26,11 @@ public class CommentController {
         return commentService.updateComment(commentUpdateRequestDTO, cardId, commentId);
     }
 
+    @DeleteMapping("/{cardId}/{commentId}")
+    public String deleteComment (@PathVariable Long cardId,
+                               @PathVariable Long commentId){
+       commentService.deleteComment( cardId, commentId);
+       return "삭제완료";
+    }
+
 }

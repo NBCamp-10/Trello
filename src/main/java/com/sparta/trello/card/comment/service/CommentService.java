@@ -41,7 +41,7 @@ public class CommentService {
     public CommentUpdateResponseDTO updateComment(CommentUpdateRequestDTO commentUpdateRequestDTO, Long cardId, Long commentId) {
         // 1. CommentRepository를 사용하여 코멘트를 찾음
         Comment comment = commentRepository.findByCardIdAndId(cardId, commentId)
-                .orElseThrow(() -> new NoSuchElementException("해당하는 카드 또는 코멘트를 찾을 수 없습니다: " + cardId + ", " + commentId));
+                .orElseThrow(() -> new NoSuchElementException("해당하는 카드의 코멘트를 찾을 수 없습니다: " + cardId + ", " + commentId));
 
         // 2. Comment 엔티티 업데이트
         comment.updateComment(commentUpdateRequestDTO);
@@ -50,5 +50,13 @@ public class CommentService {
         CommentUpdateResponseDTO commentUpdateResponseDTO = CommentUpdateResponseDTO.builder().comment(comment).build();
 
         return commentUpdateResponseDTO;
+    }
+
+    public void deleteComment(Long cardId, Long commentId) {
+        // 1. CommentRepository를 사용하여 코멘트를 찾음
+        Comment comment = commentRepository.findByCardIdAndId(cardId, commentId)
+                .orElseThrow(() -> new NoSuchElementException("해당하는 카드의 코멘트를 찾을 수 없습니다: " + cardId + ", " + commentId));
+
+        commentRepository.delete(comment);
     }
 }
