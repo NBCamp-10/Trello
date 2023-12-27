@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,7 +25,7 @@ public class Card extends TimeStamp {
     private String text;
     private String color;
     private String worker;
-    private String deadline;
+    private LocalDateTime deadline;
 
     @Builder
     private Card (CardCreateRequestDTO cardCreateRequestDTO){

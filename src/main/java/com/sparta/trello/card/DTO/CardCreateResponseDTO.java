@@ -12,7 +12,7 @@ public class CardCreateResponseDTO {
     private String text;
     private String color;
     private String worker;
-    private String deadline;
+    private LocalDateTime deadline;
     private LocalDateTime createAt;
     @Builder
     private CardCreateResponseDTO(Card card){
