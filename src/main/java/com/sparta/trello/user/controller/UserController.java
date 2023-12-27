@@ -4,6 +4,7 @@ package com.sparta.trello.user.controller;
 import com.sparta.trello.user.dto.CommonResponseDto;
 import com.sparta.trello.user.dto.LoginRequestDto;
 import com.sparta.trello.user.dto.UserRequestDto;
+import com.sparta.trello.user.security.UserDetailsImpl;
 import com.sparta.trello.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +39,15 @@ public class UserController {
             return ResponseEntity.badRequest().body(new CommonResponseDto(e.getMessage(),HttpStatus.BAD_REQUEST.value()));
         }
     }
+
+    @GetMapping
+    public ResponseEntity<CommonResponseDto> getUser(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        try {
+           return ResponseEntity.ok().body(userService.getUser(userDetails));
+        }catch (IllegalArgumentException e){
+            return  ResponseEntity.badRequest().body(new CommonResponseDto(e.getMessage(),HttpStatus.BAD_REQUEST.value()));
+        }
+    }
+
 
 }

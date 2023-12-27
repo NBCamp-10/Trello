@@ -1,11 +1,14 @@
 package com.sparta.trello.user.service;
 
+import com.sparta.trello.user.dto.CommonResponseDto;
 import com.sparta.trello.user.dto.LoginRequestDto;
 import com.sparta.trello.user.dto.UserRequestDto;
+import com.sparta.trello.user.dto.UserResponseDto;
 import com.sparta.trello.user.entity.User;
 import com.sparta.trello.user.entity.UserRoleEnum;
 import com.sparta.trello.user.jwt.JwtUtil;
 import com.sparta.trello.user.repository.UserRepository;
+import com.sparta.trello.user.security.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,5 +53,11 @@ public class UserService {
         }
 
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(requestDto.getUsername(),user.getRole()));
+    }
+
+    public UserResponseDto getUser(UserDetailsImpl userDetails) {
+        User user=userRepository.findByUsername(userDetails.getUsername()).orElseThrow(()->new IllegalArgumentException("없는 유저입니다."));
+        return new UserResponseDto(user);
+
     }
 }
