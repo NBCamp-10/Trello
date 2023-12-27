@@ -20,6 +20,12 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false,unique = true)
+    private String email;
+
+    @Column
+    private String introduce;
+
     @Column
     @Enumerated(value = EnumType.STRING)
     private UserRoleEnum role;
@@ -27,6 +33,8 @@ public class User {
     public User(UserRequestDto requestDto, String encodedPassword, UserRoleEnum role){
         this.username=requestDto.getUsername();
         this.password=encodedPassword;
+        this.email= requestDto.getEmail();;
+        this.introduce= requestDto.getIntroduce();
         this.role=role;
     }
 }

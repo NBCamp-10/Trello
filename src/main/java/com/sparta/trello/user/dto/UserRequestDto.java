@@ -6,7 +6,8 @@ import lombok.Getter;
 public class UserRequestDto {
     private String username;
     private String password;
-
+    private String email;
+    private String introduce;
     //권한 체크 여부-> 체크하면 ture
     private boolean admin=false;
 
