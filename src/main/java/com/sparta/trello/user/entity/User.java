@@ -1,5 +1,7 @@
 package com.sparta.trello.user.entity;
 
+import com.sparta.trello.user.dto.IdChangeDto;
+import com.sparta.trello.user.dto.PasswordChangeDto;
 import com.sparta.trello.user.dto.UserRequestDto;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -36,5 +38,14 @@ public class User {
         this.email= requestDto.getEmail();;
         this.introduce= requestDto.getIntroduce();
         this.role=role;
+    }
+
+    public void changeIdUser(IdChangeDto idChangeDto) {
+        this.username= idChangeDto.getUsername();
+    }
+
+
+    public void changePasswordUser(String encodedPassword) {
+        this.password=encodedPassword;
     }
 }

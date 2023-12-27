@@ -1,9 +1,6 @@
 package com.sparta.trello.user.service;
 
-import com.sparta.trello.user.dto.CommonResponseDto;
-import com.sparta.trello.user.dto.LoginRequestDto;
-import com.sparta.trello.user.dto.UserRequestDto;
-import com.sparta.trello.user.dto.UserResponseDto;
+import com.sparta.trello.user.dto.*;
 import com.sparta.trello.user.entity.User;
 import com.sparta.trello.user.entity.UserRoleEnum;
 import com.sparta.trello.user.jwt.JwtUtil;
@@ -13,6 +10,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -59,5 +59,35 @@ public class UserService {
         User user=userRepository.findByUsername(userDetails.getUsername()).orElseThrow(()->new IllegalArgumentException("없는 유저입니다."));
         return new UserResponseDto(user);
 
+    }
+
+    @Transactional
+    public void changeId(Long id, IdChangeDto idChangeDto, UserDetailsImpl userDetails) {
+        User user =userRepository.findById(id).orElseThrow(()->new IllegalArgumentException("해당 아이디는 존재하지 않습니다."));
+
+        if (!Objects.equals(user.getId(), userDetails.getUser().getId())) {
+            throw new IllegalArgumentException("본인만 수정 가능합니다");
+        }
+        if(idChangeDto.getUsername()==null){
+            throw new IllegalArgumentException("아이디를 입력하셔야 합니다.");
+        }
+        user.changeIdUser(idChangeDto);
+
+    }
+
+    @Transactional
+    public void changePassword(Long id, PasswordChangeDto passwordChangeDto, UserDetailsImpl userDetails) {
+        User user =userRepository.findById(id).orElseThrow(()->new IllegalArgumentException("해당 아이디는 존재하지 않습니다."));
+        if (!Objects.equals(user.getId(), userDetails.getUser().getId())) {
+            throw new IllegalArgumentException("본인만 수정 가능합니다");
+        }
+        if(passwordChangeDto.getBeforePassword()==null)throw new IllegalArgumentException("기존 비밀번호를 입력해야 변경 가능합니다.");
+        if(passwordChangeDto.getAfterPassword()==null)throw new IllegalArgumentException("새로윤 비밀번호를 입력해야 변경 가능합니다.");
+
+        if (!passwordEncoder.matches(passwordChangeDto.getBeforePassword(), userDetails.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+        String encodedPassword = passwordEncoder.encode(passwordChangeDto.getAfterPassword());
+        user.changePasswordUser(encodedPassword);
     }
 }

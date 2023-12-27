@@ -1,9 +1,7 @@
 package com.sparta.trello.user.controller;
 
 
-import com.sparta.trello.user.dto.CommonResponseDto;
-import com.sparta.trello.user.dto.LoginRequestDto;
-import com.sparta.trello.user.dto.UserRequestDto;
+import com.sparta.trello.user.dto.*;
 import com.sparta.trello.user.security.UserDetailsImpl;
 import com.sparta.trello.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,5 +47,24 @@ public class UserController {
         }
     }
 
+    @PatchMapping("/id/{id}")
+    public ResponseEntity<CommonResponseDto> changeId(@PathVariable Long id, @RequestBody IdChangeDto idChangeDto, @AuthenticationPrincipal UserDetailsImpl userDetails){
+        try {
+            userService.changeId(id,idChangeDto,userDetails);
+            return ResponseEntity.ok().body(new CommonResponseDto("아이디가 변경 되었습니다.",HttpStatus.OK.value()));
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().body(new CommonResponseDto(e.getMessage(),HttpStatus.BAD_REQUEST.value()));
+        }
+    }
+
+    @PatchMapping("/pasword/{id}")
+    public ResponseEntity<CommonResponseDto> changePassword(@PathVariable Long id,@RequestBody PasswordChangeDto passwordChangeDto,@AuthenticationPrincipal UserDetailsImpl userDetails){
+        try {
+            userService.changePassword(id,passwordChangeDto,userDetails);
+            return ResponseEntity.ok().body(new CommonResponseDto("비밀번호가 변경 되었습니다.",HttpStatus.OK.value()));
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().body(new CommonResponseDto(e.getMessage(),HttpStatus.BAD_REQUEST.value()));
+        }
+    }
 
 }
