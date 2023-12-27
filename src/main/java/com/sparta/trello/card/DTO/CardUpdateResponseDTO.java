@@ -4,6 +4,8 @@ import com.sparta.trello.card.entity.Card;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 public class CardUpdateResponseDTO {
     private String title;
@@ -11,7 +13,7 @@ public class CardUpdateResponseDTO {
     private String color;
     private String worker;
     private String deadline;
-
+    private LocalDateTime createAt;
     @Builder
     private CardUpdateResponseDTO(Card card){
         this.title=card.getTitle();
@@ -19,5 +21,6 @@ public class CardUpdateResponseDTO {
         this.color=card.getColor();
         this.worker=card.getWorker();
         this.deadline=card.getDeadline();
+        this.createAt=card.getCreatedAt();
     }
 }

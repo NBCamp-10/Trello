@@ -3,6 +3,7 @@ package com.sparta.trello.card.comment.entity;
 import com.sparta.trello.card.comment.DTO.CommentCreateRequestDTO;
 import com.sparta.trello.card.comment.DTO.CommentUpdateRequestDTO;
 import com.sparta.trello.card.entity.Card;
+import com.sparta.trello.card.utils.TimeStamp;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "comments")
 @NoArgsConstructor
-public class Comment {
+public class Comment extends TimeStamp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
