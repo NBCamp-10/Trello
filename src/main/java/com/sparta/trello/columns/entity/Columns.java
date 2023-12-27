@@ -1,5 +1,6 @@
 package com.sparta.trello.columns.entity;
 
+import com.sparta.trello.columns.dto.ColumnRequestDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
