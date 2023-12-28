@@ -14,7 +14,7 @@ public class BoardResponseDto {
     private String title;
     private String color;
     private String description;
-    private LocalDateTime createdAt;
+    private LocalDateTime createAt;
     private LocalDateTime modifiedAt;
 
 
@@ -23,7 +23,7 @@ public class BoardResponseDto {
         this.title = board.getTitle();
         this.color = board.getColor();
         this.description = board.getDescription();
-//        this.createdAt = board.getCreatedAt();
-//        this.modifiedAt = board.getModifiedAt();
+        this.createAt = board.getCreatedAt();
+        this.modifiedAt = board.getModifiedAt();
     }
 }
