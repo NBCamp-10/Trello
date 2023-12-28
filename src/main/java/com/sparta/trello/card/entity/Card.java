@@ -2,7 +2,7 @@ package com.sparta.trello.card.entity;
 
 import com.sparta.trello.card.DTO.CardCreateRequestDTO;
 import com.sparta.trello.card.DTO.CardUpdateRequestDTO;
-import com.sparta.trello.card.utils.TimeStamp;
+import com.sparta.trello.common.entity.Timestamped;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Table(name ="cards")
-public class Card extends TimeStamp {
+public class Card extends Timestamped {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
