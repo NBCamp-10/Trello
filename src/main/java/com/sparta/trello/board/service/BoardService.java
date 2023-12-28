@@ -94,7 +94,7 @@ public class BoardService {
         //관리자 체크
         Board board = findByBoard(boardId);
         if (!board.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("관리자만 삭제 가능합니다.");
+            throw new IllegalArgumentException("관리자만 권한변경이 가능합니다.");
         }
 
         Optional<UserBoard> userBoardOptional = userBoardRepository.findByBoardIdAndUserId(boardId, userId);
