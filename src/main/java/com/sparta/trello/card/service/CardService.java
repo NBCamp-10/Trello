@@ -2,10 +2,7 @@ package com.sparta.trello.card.service;
 
 import com.sparta.trello.board.entity.Board;
 import com.sparta.trello.board.service.BoardService;
-import com.sparta.trello.card.DTO.CardCreateRequestDTO;
-import com.sparta.trello.card.DTO.CardCreateResponseDTO;
-import com.sparta.trello.card.DTO.CardUpdateRequestDTO;
-import com.sparta.trello.card.DTO.CardUpdateResponseDTO;
+import com.sparta.trello.card.DTO.*;
 import com.sparta.trello.card.repository.CardRepository;
 import com.sparta.trello.card.entity.Card;
 import com.sparta.trello.columns.entity.Columns;
@@ -68,6 +65,24 @@ public class CardService {
         cardRepository.delete(card);
     }
 
+    public void swapCard(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
+        // 이동하려는 카드 가져오기
+        Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
+        Long currentCardIndex = movingCard.getCardIndex();
+
+        // 목표로 하는 위치에 있는 카드 가져오기
+        Long targetCardIndex = cardMoveRequestDTO.getTargetCardIndex();
+        Card targetCard = cardRepository.findByColumn_ColumnIdAndCardIndex(columnId, targetCardIndex)
+                .orElseThrow(() -> new NoSuchElementException("목표로 하는 카드를 찾을 수 없습니다."));
+
+        // 두 카드의 순서를 서로 바꾸기
+        movingCard.swapCard(targetCardIndex);
+        targetCard.swapCard(currentCardIndex);
+
+        // 데이터베이스에 업데이트 반영
+        cardRepository.save(movingCard);
+        cardRepository.save(targetCard);
+    }
 
 
     public Card getCard(Long userId, Long boardId, Long columnId, Long cardId){
@@ -83,6 +98,7 @@ public class CardService {
     public long getCardCountByColumn(Long columnId) {
         return cardRepository.countByColumn_ColumnId(columnId);
     }
+
 }
 
 

@@ -12,4 +12,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
     //특정 컬럼에 속하는 Card 엔터티의 개수를 조회합니다.
     Long countByColumn_ColumnId(Long columnId);
+
+    //컬럼 ID와 카드 인덱스를 사용하여 카드를 조회합니다.
+    Optional<Card> findByColumn_ColumnIdAndCardIndex(Long columnId, Long cardIndex);
 }

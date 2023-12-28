@@ -64,4 +64,9 @@ public class Card extends Timestamped {
         this.worker=cardUpdateRequestDTO.getWorker();
         this.deadline=cardUpdateRequestDTO.getDeadline();
     }
+
+    public void swapCard(Long cardIndex){
+        this.cardIndex=cardIndex;
+    }
+
 }
