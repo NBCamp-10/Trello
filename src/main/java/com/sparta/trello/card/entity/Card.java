@@ -30,6 +30,8 @@ public class Card extends Timestamped {
     private String worker;
     private LocalDateTime deadline;
 
+    private Long cardIndex;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -43,7 +45,7 @@ public class Card extends Timestamped {
     private Columns column;
 
     @Builder
-    private Card (CardCreateRequestDTO cardCreateRequestDTO,User user,Board board,Columns column){
+    private Card (CardCreateRequestDTO cardCreateRequestDTO,User user,Board board,Columns column, Long cardIndex){
         this.title=cardCreateRequestDTO.getTitle();
         this.text=cardCreateRequestDTO.getText();
         this.color=cardCreateRequestDTO.getColor();
@@ -52,6 +54,7 @@ public class Card extends Timestamped {
         this.user=user;
         this.board=board;
         this.column=column;
+        this.cardIndex=cardIndex;
     }
 
     public void updateCard(CardUpdateRequestDTO cardUpdateRequestDTO){

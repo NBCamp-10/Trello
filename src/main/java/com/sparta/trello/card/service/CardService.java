@@ -30,8 +30,11 @@ public class CardService {
             Board board = boardService.findByBoard(boardId);
 
             Columns column = getColumn(columnId);
+            // 특정 컬럼에 속하는 카드의 개수를 조회하고 1을 더한후 새로 생성될 카드의 인덱스에 대입 합니다.
+            Long cardIndex = getCardCountByColumn (columnId)+1L;
 
             Card card=Card.builder()
+                          .cardIndex(cardIndex)
                           .board(board)
                           .column(column)
                           .user(user)
@@ -75,6 +78,10 @@ public class CardService {
     public Columns getColumn(Long columnId){
         return columnsRepository.findById(columnId)
                 .orElseThrow(() -> new IllegalArgumentException("존재 하지 않는 columnId 입니다."));
+    }
+
+    public long getCardCountByColumn(Long columnId) {
+        return cardRepository.countByColumn_ColumnId(columnId);
     }
 }
 
