@@ -1,5 +1,7 @@
 package com.sparta.trello.columns.service;
 
+import com.sparta.trello.board.entity.Board;
+import com.sparta.trello.board.service.BoardService;
 import com.sparta.trello.columns.dto.ColumnRequestDTO;
 import com.sparta.trello.columns.dto.ColumnResponseDTO;
 import com.sparta.trello.columns.entity.Columns;
@@ -20,7 +22,7 @@ public class ColumnService {
 
     // 컬럼 생성
     public void createColumn(Long boardId, ColumnRequestDTO columnRequestDTO) {
-        Board board = boardService.findBoard(boardId);
+        Board board = boardService.findByBoard(boardId);
 
         if(columnRequestDTO.getColumnName().isEmpty()) {
             throw new IllegalArgumentException("컬럼 이름을 입력하세요.");
