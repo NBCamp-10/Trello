@@ -1,6 +1,6 @@
 package com.sparta.trello.board.controller;
 
-import com.sparta.trello.CommonResponseDTO;
+import com.sparta.trello.common.dto.CommonResponseDTO;
 import com.sparta.trello.board.dto.BoardRequestDto;
 import com.sparta.trello.board.dto.BoardResponseDto;
 import com.sparta.trello.board.dto.UserBoardResponseDto;
@@ -36,7 +36,7 @@ public class BoardController {
         return boardService.getUserIncludeBoard(userDetails.getUser());
     }
 
-    @PutMapping("/{boardId}")
+    @PatchMapping("/{boardId}")
     public ResponseEntity<BoardResponseDto> updateBoard(@PathVariable Long boardId,
                                                         @RequestBody BoardRequestDto requestDto,
                                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -60,7 +60,7 @@ public class BoardController {
         return ResponseEntity.ok().body(new CommonResponseDTO("초대되었습니다.", HttpStatus.OK.value()));
     }
 
-    @PutMapping("/{boardId}/role/{userId}")
+    @PatchMapping("/{boardId}/role/{userId}")
     public ResponseEntity<CommonResponseDTO> changeUserRoleInBoard(@PathVariable Long boardId,
                                                                    @PathVariable Long userId,
                                                                    @AuthenticationPrincipal UserDetailsImpl userDetails) {
