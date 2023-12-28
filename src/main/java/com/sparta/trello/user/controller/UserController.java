@@ -57,7 +57,7 @@ public class UserController {
         }
     }
 
-    @PatchMapping("/pasword/{id}")
+    @PatchMapping("/password/{id}")
     public ResponseEntity<CommonResponseDto> changePassword(@PathVariable Long id,@RequestBody PasswordChangeDto passwordChangeDto,@AuthenticationPrincipal UserDetailsImpl userDetails){
         try {
             userService.changePassword(id,passwordChangeDto,userDetails);
@@ -67,4 +67,13 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CommonResponseDto> deleteUser(@PathVariable Long id,@AuthenticationPrincipal UserDetailsImpl userDetails){
+        try{
+            userService.deleteUser(id,userDetails);
+            return ResponseEntity.ok().body(new CommonResponseDto("사용자가 삭제 되었습니다..",HttpStatus.OK.value()));
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().body(new CommonResponseDto(e.getMessage(),HttpStatus.BAD_REQUEST.value()));
+        }
+    }
 }
