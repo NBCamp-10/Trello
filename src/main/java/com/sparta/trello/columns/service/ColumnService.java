@@ -6,12 +6,15 @@ import com.sparta.trello.columns.dto.ColumnRequestDTO;
 import com.sparta.trello.columns.dto.ColumnResponseDTO;
 import com.sparta.trello.columns.entity.Columns;
 import com.sparta.trello.columns.repository.ColumnsRepository;
+import com.sparta.trello.user.entity.User;
+import com.sparta.trello.user.entity.UserRoleEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,16 +24,20 @@ public class ColumnService {
     private final BoardService boardService;
 
     // 컬럼 생성
-    public void createColumn(Long boardId, ColumnRequestDTO columnRequestDTO) {
+    public void createColumn(Long boardId, ColumnRequestDTO columnRequestDTO, User user) {
         Board board = boardService.findByBoard(boardId);
 
         if(columnRequestDTO.getColumnName().isEmpty()) {
             throw new IllegalArgumentException("컬럼 이름을 입력하세요.");
+        } else if(columnsRepository.findByColumnName(columnRequestDTO.getColumnName()).isPresent()){
+            throw new IllegalArgumentException("이미 존재하는 컬럼 이름입니다.");
+        } else if(columnRequestDTO.getColumnIndex() == null) {
+            throw new IllegalArgumentException("컬럼 위치를 정하세요.");
+        } else if(columnsRepository.findByColumnIndex(columnRequestDTO.getColumnIndex()).isPresent()){
+            throw new IllegalArgumentException("해당 위치에 이미 컬럼이 존재합니다.");
         }
 
-        // 컬럼 생성 권한? 확인
-
-        columnsRepository.save(new Columns(board, columnRequestDTO));
+        columnsRepository.save(new Columns(board, columnRequestDTO, user));
     }
 
 
@@ -43,45 +50,46 @@ public class ColumnService {
 
     // 컬럼 이름 수정
     @Transactional
-    public void updateColumnName(Long columnId, ColumnRequestDTO columnRequestDTO) {
-        Columns columns = columnsRepository.findById(columnId)
-                .orElseThrow(() -> new IllegalArgumentException("존재 하지 않는 columnId 입니다."));
+    public void updateColumnName(Long columnId, ColumnRequestDTO columnRequestDTO, User user) {
+        Columns column = getColumn(user, columnId);
 
-        // 사용자 권한 확인
-
-        columns.setColumnName(columnRequestDTO.getColumnName());
+        column.setColumnName(columnRequestDTO.getColumnName());
     }
 
     // 컬럼 삭제
-    public void deleteColumn(Long columnId) {
-        Columns columns = columnsRepository.findById(columnId)
-                .orElseThrow(() -> new IllegalArgumentException("존재 하지 않는 columnId 입니다."));
+    public void deleteColumn(Long columnId, User user) {
+        Columns column = getColumn(user, columnId);
 
-        // 사용자 권한 확인
-
-        columnsRepository.delete(columns);
+        columnsRepository.delete(column);
     }
 
     // 컬럼 순서 이동
-    public void moveColumn(Long columnId, Long columnIndex) {
-        Columns column = columnsRepository.findById(columnId)
-                .orElseThrow(() -> new IllegalArgumentException("존재 하지 않는 columnId 입니다."));
+    @Transactional
+    public void moveColumn(Long columnId, Long columnIndex, User user) {
+        Columns column = getColumn(user, columnId);
 
         Optional<Columns> existcolumns = columnsRepository.findByColumnIndex(columnIndex);
 
         if(existcolumns.isPresent()) {
-            Columns exitcolumn = existcolumns.get();
-
-            Long tmpIndex = exitcolumn.getColumnIndex();
-            exitcolumn.setColumnIndex(column.getColumnIndex());
+            Long tmpIndex = existcolumns.get().getColumnIndex();
+            existcolumns.get().setColumnIndex(column.getColumnIndex());
             column.setColumnIndex(tmpIndex);
-
-            columnsRepository.save(exitcolumn);
-            columnsRepository.save(column);
         } else {
             column.setColumnIndex(columnIndex);
-            columnsRepository.save(column);
         }
-
     }
+
+    public Columns getColumn(User user, Long columnId) {
+        Columns column = columnsRepository.findById(columnId)
+                .orElseThrow(() -> new IllegalArgumentException("존재 하지 않는 columnId 입니다."));
+
+        boolean isAdmin = user.getRole().equals(UserRoleEnum.ADMIN);
+
+        if (column.getUser().getId().equals(user.getId()) || isAdmin) {
+            return column;
+        } else {
+            throw new RejectedExecutionException("작성자 및 관리자만 댓글을 삭제할 수 있습니다.");
+        }
+    }
+
 }
