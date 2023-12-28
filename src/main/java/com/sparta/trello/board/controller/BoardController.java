@@ -1,6 +1,6 @@
 package com.sparta.trello.board.controller;
 
-import com.sparta.trello.CommonResponseDTO;
+import com.sparta.trello.common.dto.CommonResponseDTO;
 import com.sparta.trello.board.dto.BoardRequestDto;
 import com.sparta.trello.board.dto.BoardResponseDto;
 import com.sparta.trello.board.dto.UserBoardResponseDto;
