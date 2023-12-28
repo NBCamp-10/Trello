@@ -55,6 +55,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/cards/**").permitAll()
                         .requestMatchers("/api/boards/**").permitAll()
                         .requestMatchers("/api/columns/**").permitAll()
+                        .requestMatchers("/api/comments/**").permitAll()
                         .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 
