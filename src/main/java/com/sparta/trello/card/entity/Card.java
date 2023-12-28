@@ -45,12 +45,12 @@ public class Card extends Timestamped {
     private Columns column;
 
     @Builder
-    private Card (CardCreateRequestDTO cardCreateRequestDTO,User user,Board board,Columns column, Long cardIndex){
-        this.title=cardCreateRequestDTO.getTitle();
-        this.text=cardCreateRequestDTO.getText();
-        this.color=cardCreateRequestDTO.getColor();
-        this.worker=cardCreateRequestDTO.getWorker();
-        this.deadline=cardCreateRequestDTO.getDeadline();
+    private Card (String title, String text, String color, String worker, LocalDateTime deadline,User user,Board board,Columns column, Long cardIndex){
+        this.title=title;
+        this.text=text;
+        this.color=color;
+        this.worker=worker;
+        this.deadline=deadline;
         this.user=user;
         this.board=board;
         this.column=column;
@@ -65,7 +65,12 @@ public class Card extends Timestamped {
         this.deadline=cardUpdateRequestDTO.getDeadline();
     }
 
-    public void swapCard(Long cardIndex){
+    public void moveInColumn(Long cardIndex){
+        this.cardIndex=cardIndex;
+    }
+
+    public void moveCard(Columns column, Long cardIndex){
+        this.column=column;
         this.cardIndex=cardIndex;
     }
 
