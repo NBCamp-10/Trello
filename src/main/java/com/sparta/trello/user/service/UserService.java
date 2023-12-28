@@ -64,7 +64,9 @@ public class UserService {
     @Transactional
     public void changeId(Long id, IdChangeDto idChangeDto, UserDetailsImpl userDetails) {
         User user =userRepository.findById(id).orElseThrow(()->new IllegalArgumentException("해당 아이디는 존재하지 않습니다."));
-
+        if(userRepository.findByUsername(idChangeDto.getUsername()).isPresent()){
+            throw new IllegalArgumentException("이미 존재하는 아이디 입니다.");
+        }
         if (!Objects.equals(user.getId(), userDetails.getUser().getId())) {
             throw new IllegalArgumentException("본인만 수정 가능합니다");
         }
@@ -89,5 +91,14 @@ public class UserService {
         }
         String encodedPassword = passwordEncoder.encode(passwordChangeDto.getAfterPassword());
         user.changePasswordUser(encodedPassword);
+    }
+
+    public void deleteUser(Long id, UserDetailsImpl userDetails) {
+        User user=userRepository.findById(id).orElseThrow(()->new IllegalArgumentException("해당 아이디는 존재하지 않습니다."));
+        if (!Objects.equals(user.getId(), userDetails.getUser().getId())) {
+            throw new IllegalArgumentException("본인만 수정 가능합니다");
+        }
+
+        userRepository.delete(user);
     }
 }
