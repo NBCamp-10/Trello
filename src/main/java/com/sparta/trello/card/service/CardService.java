@@ -116,7 +116,7 @@ public class CardService {
 
         // 타겟 위치가 현재 열의 카드 수를 초과하거나 음수인 경우 예외 처리
         int columnSize = getColumnCards(user.getId(), boardId, columnId).size();
-        if (cardMoveRequestDTO.getTargetCardIndex() < 0 || cardMoveRequestDTO.getTargetCardIndex() >= columnSize) {
+        if (cardMoveRequestDTO.getTargetCardIndex() < 0 || cardMoveRequestDTO.getTargetCardIndex() > columnSize) {
             throw new IllegalArgumentException("올바르지 않은 타겟 위치입니다.");
         }
 
@@ -159,37 +159,45 @@ public class CardService {
 
 
     public void moveCard(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
-        // 이동하려는 카드 가져오기
-        Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
-
         // 목표로 하는 컬럼 아이디 가져오기
         Long targetColumnId = cardMoveRequestDTO.getTargetColumnId();
 
-        Columns column = getColumn(targetColumnId);
+        Columns targetColumn = getColumn(targetColumnId);
 
-        // 이동하려는 카드의 현재 인덱스
-        Long currentCardIndex = movingCard.getCardIndex();
-
-        // 특정 컬럼에 속하는 카드의 개수를 조회하고 1을 더한후 새로 생성될 카드의 인덱스에 대입 합니다.
-        Long cardIndex = getCardCountByColumn(targetColumnId) + 1L;
-
-        // 이동하려는 컬럼과 목표 컬럼이 동일하지 않을 경우에만 이동 수행
-        if (!columnId.equals(targetColumnId)) {
-            // 이동하려는 컬럼 정보 업데이트
-            movingCard.moveCard(column, cardIndex);
+        // 목표 컬럼이 존재하지 않으면 예외 처리
+        if (targetColumn == null) {
+            throw new IllegalArgumentException("목표 컬럼이 존재하지 않습니다.");
         }
 
-        // getColumnCards 메서드를 사용하여 해당 열의 모든 카드를 가져옵니다.
+        // 현재 컬럼과 목표 컬럼이 동일한 경우 예외 처리
+        if (columnId.equals(targetColumnId)) {
+            throw new IllegalArgumentException("현재 컬럼과 목표 컬럼이 동일합니다.");
+        }
+
+        // 이동하려는 카드 가져오기
+        Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
+
+        // 이동할 카드의 현재 인덱스
+        Long currentCardIndex = movingCard.getCardIndex();
+
+        // getColumnCards 메서드를 사용하여 현재 열의 모든 카드를 가져옵니다.
         List<Card> cardsInColumn = getColumnCards(user.getId(), boardId, columnId);
 
         for (Card card : cardsInColumn) {
             Long cardIndex2 = card.getCardIndex();
             if (cardIndex2 > currentCardIndex) {
-                // 현재 위치보다 아래에 있고 타겟 위치 이상의 카드의 인덱스를 1씩 감소시킵니다.
+                // 현재 위치보다 큰 카드의 인덱스를 1씩 감소시킵니다.
                 card.moveInColumn(cardIndex2 - 1);
             }
         }
+
+        // 이동하려는 컬럼 정보 업데이트
+        long targetIndex = getCardCountByColumn(targetColumnId) + 1L;
+
+        movingCard.moveCard(targetColumn, targetIndex);
+
     }
+
 
     public Card getCard(Long userId, Long boardId, Long columnId, Long cardId) {
         return cardRepository.findByUserIdAndBoardIdAndColumn_ColumnIdAndId(userId, boardId, columnId, cardId)
