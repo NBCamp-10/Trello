@@ -44,7 +44,7 @@ public class CardController {
     }
 
     // 카드 위치 변경 API
-    @PatchMapping("/move1/{boardId}/{columnId}/{cardId}")
+    @PatchMapping("/moveInColumn/{boardId}/{columnId}/{cardId}")
     public String moveInColumn(@AuthenticationPrincipal UserDetailsImpl userDetails,
                            @PathVariable Long boardId,
                            @PathVariable Long columnId,
