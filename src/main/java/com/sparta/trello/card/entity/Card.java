@@ -24,10 +24,19 @@ public class Card extends Timestamped {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String title;
+
+    @Column(nullable = false)
     private String text;
+
+    @Column(nullable = false)
     private String color;
+
+    @Column(nullable = false)
     private String worker;
+
+    @Column(nullable = false)
     private LocalDateTime deadline;
 
     private Long cardIndex;
