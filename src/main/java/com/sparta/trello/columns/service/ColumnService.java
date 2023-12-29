@@ -27,17 +27,15 @@ public class ColumnService {
     public void createColumn(Long boardId, ColumnRequestDTO columnRequestDTO, User user) {
         Board board = boardService.findByBoard(boardId);
 
-        if(columnRequestDTO.getColumnName().isEmpty()) {
+        if(columnRequestDTO.getColumnName() == null) {
             throw new IllegalArgumentException("컬럼 이름을 입력하세요.");
         } else if(columnsRepository.findByColumnName(columnRequestDTO.getColumnName()).isPresent()){
             throw new IllegalArgumentException("이미 존재하는 컬럼 이름입니다.");
-        } else if(columnRequestDTO.getColumnIndex() == null) {
-            throw new IllegalArgumentException("컬럼 위치를 정하세요.");
-        } else if(columnsRepository.findByColumnIndex(columnRequestDTO.getColumnIndex()).isPresent()){
-            throw new IllegalArgumentException("해당 위치에 이미 컬럼이 존재합니다.");
         }
 
-        columnsRepository.save(new Columns(board, columnRequestDTO, user));
+        Long columnIndex = columnsRepository.countByBoardId(boardId)+1L;
+
+        columnsRepository.save(new Columns(board, columnRequestDTO.getColumnName(), columnIndex, user));
     }
 
 
@@ -65,18 +63,27 @@ public class ColumnService {
 
     // 컬럼 순서 이동
     @Transactional
-    public void moveColumn(Long columnId, Long columnIndex, User user) {
+    public void moveColumn(Long columnId, Long targetIndex, User user) {
         Columns column = getColumn(user, columnId);
+        Long currentColumnIndex = column.getColumnIndex();
 
-        Optional<Columns> existcolumns = columnsRepository.findByColumnIndex(columnIndex);
+        // 해당 컬럼이 포함된 보드의 모든 컬럼 가져오기
+        List<Columns> columnsList = columnsRepository.findByBoardId(column.getBoard().getId());
 
-        if(existcolumns.isPresent()) {
-            Long tmpIndex = existcolumns.get().getColumnIndex();
-            existcolumns.get().setColumnIndex(column.getColumnIndex());
-            column.setColumnIndex(tmpIndex);
-        } else {
-            column.setColumnIndex(columnIndex);
+        for(Columns columns: columnsList) {
+            Long columnsIndex = columns.getColumnIndex();
+
+            if(currentColumnIndex < targetIndex) {
+                if(columnsIndex > currentColumnIndex && columnsIndex <= targetIndex) {
+                    columns.setColumnIndex(columnsIndex-1);
+                }
+            } else if (currentColumnIndex > targetIndex) {
+                if(columnsIndex >= targetIndex && columnsIndex < currentColumnIndex) {
+                    columns.setColumnIndex(columnsIndex+1);
+                }
+            }
         }
+        column.setColumnIndex(targetIndex);
     }
 
     public Columns getColumn(User user, Long columnId) {
