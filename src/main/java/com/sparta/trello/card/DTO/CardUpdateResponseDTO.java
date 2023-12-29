@@ -13,7 +13,7 @@ public class CardUpdateResponseDTO {
     private String color;
     private String worker;
     private LocalDateTime deadline;
-    private LocalDateTime createAt;
+    private LocalDateTime modified;
     @Builder
     private CardUpdateResponseDTO(Card card){
         this.title=card.getTitle();
@@ -21,6 +21,6 @@ public class CardUpdateResponseDTO {
         this.color=card.getColor();
         this.worker=card.getWorker();
         this.deadline=card.getDeadline();
-        this.createAt=card.getCreatedAt();
+        this.modified=card.getModifiedAt();
     }
 }

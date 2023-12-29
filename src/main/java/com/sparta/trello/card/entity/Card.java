@@ -33,6 +33,7 @@ public class Card extends Timestamped {
 
     private LocalDateTime deadline;
 
+    @Column(nullable = false)
     private Long cardIndex;
 
     @ManyToOne(fetch = FetchType.LAZY)

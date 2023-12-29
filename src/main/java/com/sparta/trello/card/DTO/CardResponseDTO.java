@@ -13,6 +13,8 @@ public class CardResponseDTO {
     private String color;
     private String worker;
     private LocalDateTime deadline;
+    private LocalDateTime createAt;
+    private LocalDateTime modified;
 
     // 생성자 추가
     public CardResponseDTO(Card card) {
@@ -23,5 +25,7 @@ public class CardResponseDTO {
         this.color = card.getColor();
         this.worker = card.getWorker();
         this.deadline = card.getDeadline();
+        this.createAt = card.getCreatedAt();
+        this.modified = card.getModifiedAt();
     }
 }
