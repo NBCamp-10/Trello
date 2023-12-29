@@ -12,6 +12,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -70,16 +72,36 @@ public class CardService {
     }
 
     public CardUpdateResponseDTO updateCard(CardUpdateRequestDTO cardUpdateRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
-
-
         Card card = getCard(user.getId(), boardId, columnId, cardId);
 
-        card.updateCard(cardUpdateRequestDTO);
+        // 업데이트하려는 필드만 변경
+        if (cardUpdateRequestDTO.getTitle() != null) {
+            card.setText(cardUpdateRequestDTO.getTitle());
+        }
+
+        if (cardUpdateRequestDTO.getText() != null) {
+            card.setText(cardUpdateRequestDTO.getText());
+        }
+
+        if (cardUpdateRequestDTO.getWorker() != null) {
+            card.setWorker(cardUpdateRequestDTO.getWorker());
+        }
+
+        if (cardUpdateRequestDTO.getColor() != null) {
+            card.setColor(cardUpdateRequestDTO.getColor());
+        }
+
+        if (cardUpdateRequestDTO.getDeadline() != null) {
+            card.setDeadline(cardUpdateRequestDTO.getDeadline());
+        }
+
+        cardRepository.save(card); // 변경된 내용을 저장
 
         CardUpdateResponseDTO cardUpdateResponseDTO = CardUpdateResponseDTO.builder().card(card).build();
 
         return cardUpdateResponseDTO;
     }
+
 
     public void deleteCard(User user, Long boardId, Long columnId, Long cardId) {
 
@@ -92,6 +114,12 @@ public class CardService {
         // 이동하려는 카드 가져오기
         Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
 
+        // 타겟 위치가 현재 열의 카드 수를 초과하거나 음수인 경우 예외 처리
+        int columnSize = getColumnCards(user.getId(), boardId, columnId).size();
+        if (cardMoveRequestDTO.getTargetCardIndex() < 0 || cardMoveRequestDTO.getTargetCardIndex() >= columnSize) {
+            throw new IllegalArgumentException("올바르지 않은 타겟 위치입니다.");
+        }
+
         Long targetCardIndex = cardMoveRequestDTO.getTargetCardIndex();
 
         // getColumnCards 메서드를 사용하여 해당 열의 모든 카드를 가져옵니다.
@@ -99,6 +127,11 @@ public class CardService {
 
         // 이동하려는 카드의 현재 인덱스
         Long currentCardIndex = movingCard.getCardIndex();
+
+        // 타겟 위치가 현재 위치와 같은 경우 예외 처리
+        if (currentCardIndex.equals(targetCardIndex)) {
+            throw new IllegalArgumentException("현재 위치와 타겟 위치가 동일합니다.");
+        }
 
         for (Card card : cardsInColumn) {
             Long cardIndex = card.getCardIndex();
@@ -121,6 +154,8 @@ public class CardService {
         // 타겟 위치에 이동한 카드를 설정
         movingCard.moveInColumn(targetCardIndex);
     }
+
+
 
 
     public void moveCard(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
