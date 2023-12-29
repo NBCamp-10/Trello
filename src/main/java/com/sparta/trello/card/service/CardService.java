@@ -102,10 +102,25 @@ public class CardService {
 
     public void deleteCard(User user, Long boardId, Long columnId, Long cardId) {
 
+        // 삭제할 카드
         Card card = getCard(user.getId(), boardId, columnId, cardId);
+
+        // 삭제할 카드의 현재 인덱스
+        Long currentCardIndex = card.getCardIndex();
+
+        // getColumnCards 메서드를 사용하여 현재 열의 모든 카드를 가져옵니다.
+        List<Card> cardsInColumn = getColumnCards(user.getId(), boardId, columnId);
+
+        for (Card card1 : cardsInColumn) {
+            if (card1.getCardIndex() > currentCardIndex) {
+                // 현재 위치보다 큰 카드의 인덱스를 1씩 감소시킵니다.
+                card1.moveInColumn(card1.getCardIndex() - 1);
+            }
+        }
 
         cardRepository.delete(card);
     }
+
 
     public void moveInColumn(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
         // 이동하려는 카드 가져오기
