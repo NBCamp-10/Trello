@@ -10,4 +10,5 @@ public interface ColumnsRepository extends JpaRepository<Columns, Long> {
     Optional<Columns> findByColumnName(String columnName);
     Long countByBoardId(Long boardId);
     List<Columns> findByBoardId(Long boardId);
+    List<Columns> findAllByOrderByColumnIndex();
 }
