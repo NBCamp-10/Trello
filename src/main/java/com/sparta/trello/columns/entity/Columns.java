@@ -1,6 +1,8 @@
 package com.sparta.trello.columns.entity;
 
 import com.sparta.trello.board.entity.Board;
+import com.sparta.trello.board.entity.UserBoard;
+import com.sparta.trello.card.entity.Card;
 import com.sparta.trello.columns.dto.ColumnRequestDTO;
 import com.sparta.trello.common.entity.Timestamped;
 import com.sparta.trello.user.entity.User;
@@ -8,6 +10,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -33,6 +38,9 @@ public class Columns extends Timestamped {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "column", cascade = CascadeType.REMOVE)
+    private List<Card> cardList = new ArrayList<>();
 
 
     public Columns(Board board, String columnName, Long columnIndex, User user) {
