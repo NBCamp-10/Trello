@@ -29,10 +29,8 @@ public class Card extends Timestamped {
     @Column(nullable = false)
     private String color;
 
-    @Column(nullable = false)
     private String worker;
 
-    @Column(nullable = false)
     private LocalDateTime deadline;
 
     private Long cardIndex;

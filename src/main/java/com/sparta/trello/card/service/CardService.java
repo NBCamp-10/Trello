@@ -41,14 +41,8 @@ public class CardService {
         if (cardCreateRequestDTO.getText() == null || cardCreateRequestDTO.getText().isEmpty()) {
             throw new IllegalArgumentException("카드 내용을 입력하세요.");
         }
-        if (cardCreateRequestDTO.getWorker() == null || cardCreateRequestDTO.getWorker().isEmpty()) {
-            throw new IllegalArgumentException("작업자를 입력하세요.");
-        }
         if (cardCreateRequestDTO.getColor() == null || cardCreateRequestDTO.getColor().isEmpty()) {
             throw new IllegalArgumentException("색깔을 입력하세요.");
-        }
-        if (cardCreateRequestDTO.getDeadline() == null) {
-            throw new IllegalArgumentException("마감일을 입력하세요.");
         }
 
         // 특정 컬럼에 속하는 카드의 개수를 조회하고 1을 더한후 새로 생성될 카드의 인덱스에 대입 합니다.
