@@ -113,6 +113,9 @@ public class CardService {
 
         Columns column=getColumn(targetColumnId);
 
+        // 이동하려는 카드의 현재 인덱스
+        Long currentCardIndex = movingCard.getCardIndex();
+
         // 특정 컬럼에 속하는 카드의 개수를 조회하고 1을 더한후 새로 생성될 카드의 인덱스에 대입 합니다.
         Long cardIndex = getCardCountByColumn (targetColumnId)+1L;
 
@@ -120,6 +123,17 @@ public class CardService {
         if (!columnId.equals(targetColumnId)) {
         // 이동하려는 컬럼 정보 업데이트
             movingCard.moveCard(column,cardIndex);
+        }
+
+        // getColumnCards 메서드를 사용하여 해당 열의 모든 카드를 가져옵니다.
+        List<Card> cardsInColumn = getColumnCards(user.getId(), boardId, columnId);
+
+        for (Card card : cardsInColumn) {
+            Long cardIndex2 = card.getCardIndex();
+            if (cardIndex2 > currentCardIndex) {
+                // 현재 위치보다 아래에 있고 타겟 위치 이상의 카드의 인덱스를 1씩 감소시킵니다.
+                card.moveInColumn(cardIndex2 - 1);
+            }
         }
     }
 
