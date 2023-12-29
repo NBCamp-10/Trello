@@ -3,16 +3,16 @@ package com.sparta.trello.card.service;
 import com.sparta.trello.board.entity.Board;
 import com.sparta.trello.board.service.BoardService;
 import com.sparta.trello.card.DTO.*;
-import com.sparta.trello.card.repository.CardRepository;
 import com.sparta.trello.card.entity.Card;
+import com.sparta.trello.card.repository.CardRepository;
 import com.sparta.trello.columns.entity.Columns;
 import com.sparta.trello.columns.repository.ColumnsRepository;
-import com.sparta.trello.columns.service.ColumnService;
 import com.sparta.trello.user.entity.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -35,7 +35,11 @@ public class CardService {
                           .board(board)
                           .column(column)
                           .user(user)
-                          .cardCreateRequestDTO(cardCreateRequestDTO)
+                          .title(cardCreateRequestDTO.getTitle())
+                          .text(cardCreateRequestDTO.getText())
+                          .color(cardCreateRequestDTO.getColor())
+                          .worker(cardCreateRequestDTO.getWorker())
+                          .deadline(cardCreateRequestDTO.getDeadline())
                           .build();
 
             cardRepository.save(card);
@@ -65,29 +69,63 @@ public class CardService {
         cardRepository.delete(card);
     }
 
-    public void swapCard(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
+    public void moveInColumn(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
         // 이동하려는 카드 가져오기
         Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
+
+        Long targetCardIndex = cardMoveRequestDTO.getTargetCardIndex();
+
+        // getColumnCards 메서드를 사용하여 해당 열의 모든 카드를 가져옵니다.
+        List<Card> cardsInColumn = getColumnCards(user.getId(), boardId, columnId);
+
+        // 이동하려는 카드의 현재 인덱스
         Long currentCardIndex = movingCard.getCardIndex();
 
-        // 목표로 하는 위치에 있는 카드 가져오기
-        Long targetCardIndex = cardMoveRequestDTO.getTargetCardIndex();
-        Card targetCard = cardRepository.findByColumn_ColumnIdAndCardIndex(columnId, targetCardIndex)
-                .orElseThrow(() -> new NoSuchElementException("목표로 하는 카드를 찾을 수 없습니다."));
+        for (Card card : cardsInColumn) {
+            Long cardIndex = card.getCardIndex();
 
-        // 두 카드의 순서를 서로 바꾸기
-        movingCard.swapCard(targetCardIndex);
-        targetCard.swapCard(currentCardIndex);
+            if (currentCardIndex < targetCardIndex) {
+                // 이동한 카드가 타겟 위치보다 아래로 이동한 경우
+                if (cardIndex > currentCardIndex && cardIndex <= targetCardIndex) {
+                    // 현재 위치보다 아래에 있고 타겟 위치 이상의 카드의 인덱스를 1씩 감소시킵니다.
+                    card.moveInColumn(cardIndex - 1);
+                }
+            } else if (currentCardIndex > targetCardIndex) {
+                // 이동한 카드가 타겟 위치보다 위로 이동한 경우
+                if (cardIndex >= targetCardIndex && cardIndex < currentCardIndex) {
+                    // 타겟 위치 이상이고 현재 위치 미만의 카드의 인덱스를 1씩 증가시킵니다.
+                    card.moveInColumn(cardIndex + 1);
+                }
+            }
+        }
 
-        // 데이터베이스에 업데이트 반영
-        cardRepository.save(movingCard);
-        cardRepository.save(targetCard);
+        // 타겟 위치에 이동한 카드를 설정
+        movingCard.moveInColumn(targetCardIndex);
     }
 
 
+    public void moveCard(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
+        // 이동하려는 카드 가져오기
+        Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
+
+        // 목표로 하는 컬럼 아이디 가져오기
+        Long targetColumnId = cardMoveRequestDTO.getTargetColumnId();
+
+        Columns column=getColumn(targetColumnId);
+
+        // 특정 컬럼에 속하는 카드의 개수를 조회하고 1을 더한후 새로 생성될 카드의 인덱스에 대입 합니다.
+        Long cardIndex = getCardCountByColumn (targetColumnId)+1L;
+
+        // 이동하려는 컬럼과 목표 컬럼이 동일하지 않을 경우에만 이동 수행
+        if (!columnId.equals(targetColumnId)) {
+        // 이동하려는 컬럼 정보 업데이트
+            movingCard.moveCard(column,cardIndex);
+        }
+    }
+
     public Card getCard(Long userId, Long boardId, Long columnId, Long cardId){
         return cardRepository.findByUserIdAndBoardIdAndColumn_ColumnIdAndId(userId, boardId, columnId,cardId)
-                .orElseThrow(() -> new NoSuchElementException("해당하는 카드의 코멘트를 찾을 수 없습니다: "));
+                .orElseThrow(() -> new NoSuchElementException("해당하는 카드를 찾을 수 없습니다: "));
     }
 
     public Columns getColumn(Long columnId){
@@ -97,6 +135,10 @@ public class CardService {
 
     public long getCardCountByColumn(Long columnId) {
         return cardRepository.countByColumn_ColumnId(columnId);
+    }
+
+    public List<Card> getColumnCards(Long userId, Long boardId, Long columnId) {
+        return cardRepository.findByUserIdAndBoardIdAndColumn_ColumnIdOrderByCardIndex(userId, boardId, columnId);
     }
 
 }

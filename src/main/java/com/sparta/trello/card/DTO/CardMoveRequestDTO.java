@@ -5,4 +5,5 @@ import lombok.Getter;
 @Getter
 public class CardMoveRequestDTO {
     private Long targetCardIndex;
+    private Long targetColumnId;
 }

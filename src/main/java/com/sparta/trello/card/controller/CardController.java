@@ -44,13 +44,24 @@ public class CardController {
     }
 
     // 카드 위치 변경 API
-    @PatchMapping("/swap/{boardId}/{columnId}/{cardId}")
-    public String swapCard(@AuthenticationPrincipal UserDetailsImpl userDetails,
+    @PatchMapping("/move1/{boardId}/{columnId}/{cardId}")
+    public String moveInColumn(@AuthenticationPrincipal UserDetailsImpl userDetails,
                            @PathVariable Long boardId,
                            @PathVariable Long columnId,
                            @PathVariable Long cardId,
                            @RequestBody CardMoveRequestDTO cardMoveRequestDTO) {
-        cardService.swapCard(cardMoveRequestDTO, userDetails.getUser(), boardId, columnId, cardId);
+        cardService.moveInColumn(cardMoveRequestDTO, userDetails.getUser(), boardId, columnId, cardId);
+        return "이동완료";
+    }
+
+    // 카드 이동 API (다른 컬럼으로 이동)
+    @PatchMapping("/move/{boardId}/{columnId}/{cardId}")
+    public String moveCard(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                           @PathVariable Long boardId,
+                           @PathVariable Long columnId,
+                           @PathVariable Long cardId,
+                           @RequestBody CardMoveRequestDTO cardMoveRequestDTO) {
+        cardService.moveCard(cardMoveRequestDTO, userDetails.getUser(), boardId, columnId, cardId);
         return "이동완료";
     }
 }
