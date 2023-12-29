@@ -30,9 +30,24 @@ public class CommentService {
 
         Card card=cardService.getCard(user.getId(),boardId,columnId,cardId);
 
+        if (card == null) {
+            throw new IllegalArgumentException("해당 카드가 존재하지 않습니다.");
+        }
+
         Board board= boardService.findByBoard(boardId);
 
+        if (board == null) {
+            throw new IllegalArgumentException("해당 보드가 존재하지 않습니다.");
+        }
+
         Columns column=cardService.getColumn(columnId);
+
+        if (column == null) {
+            throw new IllegalArgumentException("해당 컬럼이 존재하지 않습니다.");
+        }
+        if (commentCreateRequestDTO == null || commentCreateRequestDTO.getText().isEmpty()) {
+            throw new IllegalArgumentException("text를 입력 해주세요.");
+        }
 
         Comment comment=Comment.builder()
                                .user(user)
