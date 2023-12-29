@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
 
@@ -27,7 +26,7 @@ public class ColumnService {
     public void createColumn(Long boardId, ColumnRequestDTO columnRequestDTO, User user) {
         Board board = boardService.findByBoard(boardId);
 
-        if(columnRequestDTO.getColumnName() == null) {
+        if(columnRequestDTO.getColumnName() == null || columnRequestDTO.getColumnName().isEmpty()) {
             throw new IllegalArgumentException("컬럼 이름을 입력하세요.");
         } else if(columnsRepository.findByColumnName(columnRequestDTO.getColumnName()).isPresent()){
             throw new IllegalArgumentException("이미 존재하는 컬럼 이름입니다.");
@@ -41,7 +40,7 @@ public class ColumnService {
 
     // 컬럼 조회
     public List<ColumnResponseDTO> getColumnList() {
-        return columnsRepository.findAll().stream()
+        return columnsRepository.findAllByOrderByColumnIndex().stream()
                 .map(ColumnResponseDTO::new)
                 .collect(Collectors.toList());
     }
@@ -57,6 +56,17 @@ public class ColumnService {
     // 컬럼 삭제
     public void deleteColumn(Long columnId, User user) {
         Columns column = getColumn(user, columnId);
+        Long currentColumnIndex = column.getColumnIndex();
+
+        // 해당 컬럼이 포함된 보드의 모든 컬럼 가져오기
+        List<Columns> columnsList = columnsRepository.findByBoardId(column.getBoard().getId());
+
+        for(Columns columns: columnsList) {
+            Long columnsIndex = columns.getColumnIndex();
+            if(columnsIndex > currentColumnIndex) {
+                columns.setColumnIndex(columnsIndex-1);
+            }
+        }
 
         columnsRepository.delete(column);
     }
