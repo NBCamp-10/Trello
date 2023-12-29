@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,32 +24,45 @@ public class BoardController {
     private final BoardService boardService;
 
     @PostMapping("")
-    public ResponseEntity<BoardResponseDto> createBoard(@RequestBody BoardRequestDto requestDto,
-                                                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        BoardResponseDto createBoard = boardService.createBoard(requestDto, userDetails.getUser());
-        return ResponseEntity.ok().body(createBoard);
+    public ResponseEntity<CommonResponseDTO> createBoard(@RequestBody BoardRequestDto requestDto,
+                                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        try {
+            boardService.createBoard(requestDto, userDetails.getUser());
+            return ResponseEntity.ok().body(new CommonResponseDTO("보드 생성 완료", HttpStatus.OK.value()));
+        } catch (RejectedExecutionException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new CommonResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        }
     }
 
     @GetMapping("") //사용자가 초대된 보드 조회
-    public List<UserBoardResponseDto> getUserIncludeBoard(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<List<UserBoardResponseDto>> getUserIncludeBoard(@AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        return boardService.getUserIncludeBoard(userDetails.getUser());
+        List<UserBoardResponseDto> responseDto = boardService.getUserIncludeBoard(userDetails.getUser());
+        return ResponseEntity.ok().body(responseDto);
+
     }
 
     @PatchMapping("/{boardId}")
-    public ResponseEntity<BoardResponseDto> updateBoard(@PathVariable Long boardId,
-                                                        @RequestBody BoardRequestDto requestDto,
-                                                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        BoardResponseDto updateBoard = boardService.updateBoard(userDetails.getUser(), boardId, requestDto);
-        return ResponseEntity.ok().body(updateBoard);
+    public ResponseEntity<CommonResponseDTO> updateBoard(@PathVariable Long boardId,
+                                                         @RequestBody BoardRequestDto requestDto,
+                                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        try {
+            boardService.updateBoard(userDetails.getUser(), boardId, requestDto);
+            return ResponseEntity.ok().body(new CommonResponseDTO("보드 수정 완료", HttpStatus.OK.value()));
+        } catch (RejectedExecutionException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new CommonResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        }
     }
 
     @DeleteMapping("/{boardId}")
     public ResponseEntity<CommonResponseDTO> deleteBoard(@PathVariable Long boardId,
                                                          @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        boardService.deleteBoard(userDetails.getUser(), boardId);
-        return ResponseEntity.ok().body(new CommonResponseDTO("삭제 되었습니다.", HttpStatus.OK.value()));
+        try {
+            boardService.deleteBoard(userDetails.getUser(), boardId);
+            return ResponseEntity.ok().body(new CommonResponseDTO("보드 삭제 완료", HttpStatus.OK.value()));
+        } catch (RejectedExecutionException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new CommonResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        }
     }
 
     @PostMapping("/{boardId}/invite/{invitedUserId}")
@@ -56,8 +70,12 @@ public class BoardController {
                                                                @PathVariable Long invitedUserId,
                                                                @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        boardService.inviteUserToBoard(userDetails.getUser(), boardId, invitedUserId);
-        return ResponseEntity.ok().body(new CommonResponseDTO("초대되었습니다.", HttpStatus.OK.value()));
+        try {
+            boardService.inviteUserToBoard(userDetails.getUser(), boardId, invitedUserId);
+            return ResponseEntity.ok().body(new CommonResponseDTO("초대 완료", HttpStatus.OK.value()));
+        } catch (RejectedExecutionException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new CommonResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        }
     }
 
     @PatchMapping("/{boardId}/role/{userId}")
@@ -65,8 +83,12 @@ public class BoardController {
                                                                    @PathVariable Long userId,
                                                                    @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        boardService.changeUserRoleInBoard(userDetails.getUser(), boardId, userId);
-        return ResponseEntity.ok().body(new CommonResponseDTO("권한변경 완료", HttpStatus.OK.value()));
+        try {
+            boardService.changeUserRoleInBoard(userDetails.getUser(), boardId, userId);
+            return ResponseEntity.ok().body(new CommonResponseDTO("권한변경 완료", HttpStatus.OK.value()));
+        } catch (RejectedExecutionException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new CommonResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        }
     }
 
 
