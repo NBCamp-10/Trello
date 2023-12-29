@@ -2,6 +2,7 @@ package com.sparta.trello.card.controller;
 
 import com.sparta.trello.card.DTO.*;
 import com.sparta.trello.card.service.CardService;
+import com.sparta.trello.columns.dto.ColumnResponseDTO;
 import com.sparta.trello.common.dto.CommonResponseDTO;
 import com.sparta.trello.user.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
 @RequestMapping("/api/cards")
@@ -93,5 +95,12 @@ public class CardController {
         } catch (RejectedExecutionException | IllegalArgumentException e){
             return ResponseEntity.badRequest().body(new CommonResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
+    }
+
+    @GetMapping("/{boardId}/{columnId}")
+    public ResponseEntity<List<CardResponseDTO>> getCardListForColumn(@PathVariable Long boardId,
+                                                             @PathVariable Long columnId) {
+        List<CardResponseDTO> cardResponseDTOList = cardService.getCardListForColumn(boardId, columnId);
+        return ResponseEntity.ok().body(cardResponseDTOList);
     }
 }

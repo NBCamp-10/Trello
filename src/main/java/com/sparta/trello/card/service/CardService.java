@@ -5,10 +5,12 @@ import com.sparta.trello.board.service.BoardService;
 import com.sparta.trello.card.DTO.*;
 import com.sparta.trello.card.entity.Card;
 import com.sparta.trello.card.repository.CardRepository;
+import com.sparta.trello.columns.dto.ColumnResponseDTO;
 import com.sparta.trello.columns.entity.Columns;
 import com.sparta.trello.columns.repository.ColumnsRepository;
 import com.sparta.trello.user.entity.User;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -198,6 +201,15 @@ public class CardService {
 
     }
 
+    public List<CardResponseDTO> getCardListForColumn(Long boardId, Long columnId) {
+        List<Card> sortedCards = cardRepository.findByBoardIdAndColumn_ColumnIdOrderByCardIndex(boardId, columnId);
+
+        return sortedCards.stream()
+                .map(CardResponseDTO::new) // CardResponseDTO로 변환
+                .collect(Collectors.toList());
+    }
+
+
 
     public Card getCard(Long userId, Long boardId, Long columnId, Long cardId) {
         return cardRepository.findByUserIdAndBoardIdAndColumn_ColumnIdAndId(userId, boardId, columnId, cardId)
@@ -216,6 +228,7 @@ public class CardService {
     public List<Card> getColumnCards(Long userId, Long boardId, Long columnId) {
         return cardRepository.findByUserIdAndBoardIdAndColumn_ColumnIdOrderByCardIndex(userId, boardId, columnId);
     }
+
 
 }
 
