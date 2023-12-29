@@ -1,16 +1,11 @@
 package com.sparta.trello.card.entity;
 
 import com.sparta.trello.board.entity.Board;
-import com.sparta.trello.card.DTO.CardCreateRequestDTO;
-import com.sparta.trello.card.DTO.CardUpdateRequestDTO;
 import com.sparta.trello.columns.entity.Columns;
 import com.sparta.trello.common.entity.Timestamped;
 import com.sparta.trello.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -18,18 +13,27 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @Table(name ="cards")
 public class Card extends Timestamped {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String title;
+
+    @Column(nullable = false)
     private String text;
+
+    @Column(nullable = false)
     private String color;
+
     private String worker;
+
     private LocalDateTime deadline;
 
+    @Column(nullable = false)
     private Long cardIndex;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -55,14 +59,6 @@ public class Card extends Timestamped {
         this.board=board;
         this.column=column;
         this.cardIndex=cardIndex;
-    }
-
-    public void updateCard(CardUpdateRequestDTO cardUpdateRequestDTO){
-        this.title=cardUpdateRequestDTO.getTitle();
-        this.text=cardUpdateRequestDTO.getText();
-        this.color=cardUpdateRequestDTO.getColor();
-        this.worker=cardUpdateRequestDTO.getWorker();
-        this.deadline=cardUpdateRequestDTO.getDeadline();
     }
 
     public void moveInColumn(Long cardIndex){

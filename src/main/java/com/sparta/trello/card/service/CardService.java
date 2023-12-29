@@ -5,15 +5,21 @@ import com.sparta.trello.board.service.BoardService;
 import com.sparta.trello.card.DTO.*;
 import com.sparta.trello.card.entity.Card;
 import com.sparta.trello.card.repository.CardRepository;
+import com.sparta.trello.columns.dto.ColumnResponseDTO;
 import com.sparta.trello.columns.entity.Columns;
 import com.sparta.trello.columns.repository.ColumnsRepository;
 import com.sparta.trello.user.entity.User;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -23,55 +29,108 @@ public class CardService {
     private final CardRepository cardRepository;
     private final BoardService boardService;
     private final ColumnsRepository columnsRepository;
+
     public CardCreateResponseDTO createCard(CardCreateRequestDTO cardCreateRequestDTO, User user, Long boardId, Long columnId) {
-            Board board = boardService.findByBoard(boardId);
+        Board board = boardService.findByBoard(boardId);
 
-            Columns column = getColumn(columnId);
-            // 특정 컬럼에 속하는 카드의 개수를 조회하고 1을 더한후 새로 생성될 카드의 인덱스에 대입 합니다.
-            Long cardIndex = getCardCountByColumn (columnId)+1L;
+        Columns column = getColumn(columnId);
 
-            Card card=Card.builder()
-                          .cardIndex(cardIndex)
-                          .board(board)
-                          .column(column)
-                          .user(user)
-                          .title(cardCreateRequestDTO.getTitle())
-                          .text(cardCreateRequestDTO.getText())
-                          .color(cardCreateRequestDTO.getColor())
-                          .worker(cardCreateRequestDTO.getWorker())
-                          .deadline(cardCreateRequestDTO.getDeadline())
-                          .build();
+        if (cardCreateRequestDTO.getTitle() == null || cardCreateRequestDTO.getTitle().isEmpty()) {
+            throw new IllegalArgumentException("카드 제목을 입력하세요.");
+        }
+        if (cardCreateRequestDTO.getText() == null || cardCreateRequestDTO.getText().isEmpty()) {
+            throw new IllegalArgumentException("카드 내용을 입력하세요.");
+        }
+        if (cardCreateRequestDTO.getColor() == null || cardCreateRequestDTO.getColor().isEmpty()) {
+            throw new IllegalArgumentException("색깔을 입력하세요.");
+        }
 
-            cardRepository.save(card);
+        // 특정 컬럼에 속하는 카드의 개수를 조회하고 1을 더한후 새로 생성될 카드의 인덱스에 대입 합니다.
+        Long cardIndex = getCardCountByColumn(columnId) + 1L;
 
-            CardCreateResponseDTO cardCreateResponseDTO=CardCreateResponseDTO.builder().card(card).build();
+        Card card = Card.builder()
+                .cardIndex(cardIndex)
+                .board(board)
+                .column(column)
+                .user(user)
+                .title(cardCreateRequestDTO.getTitle())
+                .text(cardCreateRequestDTO.getText())
+                .color(cardCreateRequestDTO.getColor())
+                .worker(cardCreateRequestDTO.getWorker())
+                .deadline(cardCreateRequestDTO.getDeadline())
+                .build();
 
-            return cardCreateResponseDTO;
+        cardRepository.save(card);
+
+        CardCreateResponseDTO cardCreateResponseDTO = CardCreateResponseDTO.builder().card(card).build();
+
+        return cardCreateResponseDTO;
 
     }
 
-    public CardUpdateResponseDTO updateCard(CardUpdateRequestDTO cardUpdateRequestDTO,User user,Long boardId, Long columnId, Long cardId) {
+    public CardUpdateResponseDTO updateCard(CardUpdateRequestDTO cardUpdateRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
+        Card card = getCard(user.getId(), boardId, columnId, cardId);
 
+        // 업데이트하려는 필드만 변경
+        if (cardUpdateRequestDTO.getTitle() != null) {
+            card.setText(cardUpdateRequestDTO.getTitle());
+        }
 
-        Card card= getCard(user.getId(),boardId,columnId,cardId);
+        if (cardUpdateRequestDTO.getText() != null) {
+            card.setText(cardUpdateRequestDTO.getText());
+        }
 
-        card.updateCard(cardUpdateRequestDTO);
+        if (cardUpdateRequestDTO.getWorker() != null) {
+            card.setWorker(cardUpdateRequestDTO.getWorker());
+        }
 
-        CardUpdateResponseDTO cardUpdateResponseDTO=CardUpdateResponseDTO.builder().card(card).build();
+        if (cardUpdateRequestDTO.getColor() != null) {
+            card.setColor(cardUpdateRequestDTO.getColor());
+        }
+
+        if (cardUpdateRequestDTO.getDeadline() != null) {
+            card.setDeadline(cardUpdateRequestDTO.getDeadline());
+        }
+
+        cardRepository.save(card); // 변경된 내용을 저장
+
+        CardUpdateResponseDTO cardUpdateResponseDTO = CardUpdateResponseDTO.builder().card(card).build();
 
         return cardUpdateResponseDTO;
     }
 
+
     public void deleteCard(User user, Long boardId, Long columnId, Long cardId) {
 
-        Card card= getCard(user.getId(),boardId,columnId,cardId);
+        // 삭제할 카드
+        Card card = getCard(user.getId(), boardId, columnId, cardId);
+
+        // 삭제할 카드의 현재 인덱스
+        Long currentCardIndex = card.getCardIndex();
+
+        // getColumnCards 메서드를 사용하여 현재 열의 모든 카드를 가져옵니다.
+        List<Card> cardsInColumn = getColumnCards(user.getId(), boardId, columnId);
+
+        for (Card card1 : cardsInColumn) {
+            if (card1.getCardIndex() > currentCardIndex) {
+                // 현재 위치보다 큰 카드의 인덱스를 1씩 감소시킵니다.
+                card1.moveInColumn(card1.getCardIndex() - 1);
+            }
+        }
 
         cardRepository.delete(card);
     }
 
+
     public void moveInColumn(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
         // 이동하려는 카드 가져오기
         Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
+
+        // 타겟 위치가 현재 열의 카드 수를 초과하거나 음수인 경우 예외 처리
+        int columnSize = getColumnCards(user.getId(), boardId, columnId).size();
+        if (cardMoveRequestDTO.getTargetCardIndex() < 0 || cardMoveRequestDTO.getTargetCardIndex() > columnSize) {
+            throw new IllegalArgumentException("올바르지 않은 타겟 위치입니다.");
+        }
 
         Long targetCardIndex = cardMoveRequestDTO.getTargetCardIndex();
 
@@ -80,6 +139,11 @@ public class CardService {
 
         // 이동하려는 카드의 현재 인덱스
         Long currentCardIndex = movingCard.getCardIndex();
+
+        // 타겟 위치가 현재 위치와 같은 경우 예외 처리
+        if (currentCardIndex.equals(targetCardIndex)) {
+            throw new IllegalArgumentException("현재 위치와 타겟 위치가 동일합니다.");
+        }
 
         for (Card card : cardsInColumn) {
             Long cardIndex = card.getCardIndex();
@@ -104,45 +168,64 @@ public class CardService {
     }
 
 
-    public void moveCard(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
-        // 이동하려는 카드 가져오기
-        Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
 
+
+    public void moveCard(CardMoveRequestDTO cardMoveRequestDTO, User user, Long boardId, Long columnId, Long cardId) {
         // 목표로 하는 컬럼 아이디 가져오기
         Long targetColumnId = cardMoveRequestDTO.getTargetColumnId();
 
-        Columns column=getColumn(targetColumnId);
+        Columns targetColumn = getColumn(targetColumnId);
 
-        // 이동하려는 카드의 현재 인덱스
-        Long currentCardIndex = movingCard.getCardIndex();
-
-        // 특정 컬럼에 속하는 카드의 개수를 조회하고 1을 더한후 새로 생성될 카드의 인덱스에 대입 합니다.
-        Long cardIndex = getCardCountByColumn (targetColumnId)+1L;
-
-        // 이동하려는 컬럼과 목표 컬럼이 동일하지 않을 경우에만 이동 수행
-        if (!columnId.equals(targetColumnId)) {
-        // 이동하려는 컬럼 정보 업데이트
-            movingCard.moveCard(column,cardIndex);
+        // 목표 컬럼이 존재하지 않으면 예외 처리
+        if (targetColumn == null) {
+            throw new IllegalArgumentException("목표 컬럼이 존재하지 않습니다.");
         }
 
-        // getColumnCards 메서드를 사용하여 해당 열의 모든 카드를 가져옵니다.
+        // 현재 컬럼과 목표 컬럼이 동일한 경우 예외 처리
+        if (columnId.equals(targetColumnId)) {
+            throw new IllegalArgumentException("현재 컬럼과 목표 컬럼이 동일합니다.");
+        }
+
+        // 이동하려는 카드 가져오기
+        Card movingCard = getCard(user.getId(), boardId, columnId, cardId);
+
+        // 이동할 카드의 현재 인덱스
+        Long currentCardIndex = movingCard.getCardIndex();
+
+        // getColumnCards 메서드를 사용하여 현재 열의 모든 카드를 가져옵니다.
         List<Card> cardsInColumn = getColumnCards(user.getId(), boardId, columnId);
 
         for (Card card : cardsInColumn) {
             Long cardIndex2 = card.getCardIndex();
             if (cardIndex2 > currentCardIndex) {
-                // 현재 위치보다 아래에 있고 타겟 위치 이상의 카드의 인덱스를 1씩 감소시킵니다.
+                // 현재 위치보다 큰 카드의 인덱스를 1씩 감소시킵니다.
                 card.moveInColumn(cardIndex2 - 1);
             }
         }
+
+        // 이동하려는 컬럼 정보 업데이트
+        long targetIndex = getCardCountByColumn(targetColumnId) + 1L;
+
+        movingCard.moveCard(targetColumn, targetIndex);
+
     }
 
-    public Card getCard(Long userId, Long boardId, Long columnId, Long cardId){
-        return cardRepository.findByUserIdAndBoardIdAndColumn_ColumnIdAndId(userId, boardId, columnId,cardId)
+    public List<CardResponseDTO> getCardListForColumn(Long boardId, Long columnId) {
+        List<Card> sortedCards = cardRepository.findByBoardIdAndColumn_ColumnIdOrderByCardIndex(boardId, columnId);
+
+        return sortedCards.stream()
+                .map(CardResponseDTO::new) // CardResponseDTO로 변환
+                .collect(Collectors.toList());
+    }
+
+
+
+    public Card getCard(Long userId, Long boardId, Long columnId, Long cardId) {
+        return cardRepository.findByUserIdAndBoardIdAndColumn_ColumnIdAndId(userId, boardId, columnId, cardId)
                 .orElseThrow(() -> new NoSuchElementException("해당하는 카드를 찾을 수 없습니다: "));
     }
 
-    public Columns getColumn(Long columnId){
+    public Columns getColumn(Long columnId) {
         return columnsRepository.findById(columnId)
                 .orElseThrow(() -> new IllegalArgumentException("존재 하지 않는 columnId 입니다."));
     }
@@ -154,6 +237,7 @@ public class CardService {
     public List<Card> getColumnCards(Long userId, Long boardId, Long columnId) {
         return cardRepository.findByUserIdAndBoardIdAndColumn_ColumnIdOrderByCardIndex(userId, boardId, columnId);
     }
+
 
 }
 

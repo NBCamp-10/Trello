@@ -15,5 +15,6 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     Long countByColumn_ColumnId(Long columnId);
     List<Card> findByUserIdAndBoardIdAndColumn_ColumnIdOrderByCardIndex(Long userId, Long boardId, Long columnId);
 
-
+    // boardId와 columnId에 해당하는 카드를 cardIndex순으로 정렬하여 가져오는 메서드
+    List<Card> findByBoardIdAndColumn_ColumnIdOrderByCardIndex(Long boardId, Long columnId);
 }

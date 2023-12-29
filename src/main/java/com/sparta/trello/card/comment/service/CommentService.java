@@ -30,9 +30,15 @@ public class CommentService {
 
         Card card=cardService.getCard(user.getId(),boardId,columnId,cardId);
 
+
         Board board= boardService.findByBoard(boardId);
 
+
         Columns column=cardService.getColumn(columnId);
+
+        if (commentCreateRequestDTO == null || commentCreateRequestDTO.getText().isEmpty()) {
+            throw new IllegalArgumentException("text를 입력 해주세요.");
+        }
 
         Comment comment=Comment.builder()
                                .user(user)
